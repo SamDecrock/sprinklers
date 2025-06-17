@@ -1,0 +1,15 @@
+{
+  "name": "sprinklers",
+  "version": "2.0.0",
+  "description": "",
+  "main": "app.js",
+  "author": "Sam Decrock",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "node-cron": "^4.1.0",
+    "onoff": "^6.0.3",
+    "socket.io-client": "^4.8.1"
+  }
+}

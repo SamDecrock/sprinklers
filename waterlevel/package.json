@@ -1,0 +1,17 @@
+{
+  "name": "waterput",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sam Decrock",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "influx": "^5.10.0",
+    "koffi": "^2.11.0",
+    "socket.io": "^4.8.1"
+  }
+}

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sprinkler Control Panel</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #e0f7fa, #f4f4f4);
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: linear-gradient(to right, #1e88e5, #1976d2);
+    color: white;
+    padding: 1.2rem;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 500;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .toggle-btn {
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .toggle-btn.on {
+    background-color: #43a047;
+  }
+
+  .toggle-btn.off {
+    background-color: #ef5350;
+  }
+
+  .toggle-btn.on:hover {
+    background-color: #388e3c;
+  }
+
+  .toggle-btn.off:hover {
+    background-color: #d32f2f;
+  }
+
+  .info {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #333;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 2rem;
+  }
+
+  .card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 1.2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+  }
+
+  .card h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.3rem;
+    text-align: center;
+    color: #222;
+  }
+
+  .state {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .state.on {
+    color: #4caf50;
+  }
+
+  .state.off {
+    color: #f44336;
+  }
+
+  .card .toggle-btn {
+    margin-top: 0.7rem;
+    width: 100%;
+  }
+</style>
+
+</head>
+<body>
+  <div id="app">
+    <header>Sprinkler Control Panel</header>
+
+    <div class="actions">
+      <button v-if="schedulerEnabled" class="toggle-btn off" @click="disableScheduler">Disable Depth Schedule</button>
+      <button v-else class="toggle-btn on" @click="enableScheduler">Enable Depth Schedule</button>
+    </div>
+
+    <div class="info">
+      <div>{{ totalMinutes }} minutes of water consumed in the last 24 hours.</div>
+      <div>Current water depth: {{ currentDepth }} cm</div>
+    </div>
+
+    <div class="container">
+      <div class="card" v-for="sprinkler in sprinklers" :key="sprinkler.id">
+        <h2>{{ sprinkler.name }}</h2>
+        <div class="state" :class="sprinkler.state">State: {{ sprinkler.state?.toUpperCase?.() || 'UNKNOWN' }}</div>
+        <button
+          class="toggle-btn"
+          :class="sprinkler.state"
+          @click="toggleSprinkler(sprinkler.id, sprinkler.state === 'on' ? 'off' : 'on')"
+        >
+          {{ sprinkler.state === 'on' ? 'Turn Off' : 'Turn On' }}
+        </button>
+      </div>
+    </div>
+
+    <br />
+    <br />
+    <br />
+    <br />
+  </div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+  const { createApp, ref, onMounted } = Vue;
+
+  createApp({
+    setup() {
+      const sprinklers = ref([]);
+      const totalMinutes = ref(0);
+      const schedulerEnabled = ref(false);
+      const currentDepth = ref('--');
+
+      const loadSprinklers = async () => {
+        const res = await fetch('/api/sprinklers');
+        const data = await res.json();
+        sprinklers.value = data.sprinklers;
+      };
+
+      const fetchStats = async () => {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        totalMinutes.value = data.totalMinutes;
+      };
+
+      const fetchSchedulerStatus = async () => {
+        const res = await fetch('/api/scheduler');
+        const data = await res.json();
+        schedulerEnabled.value = data.enabled;
+      };
+
+      const fetchDepth = async () => {
+        try {
+          const res = await fetch('/api/depth');
+          const data = await res.json();
+          currentDepth.value = data.depth === '--' ? '--' : `${data.depth.toFixed(1)}`;
+        } catch (error) {
+          console.error('Error fetching depth:', error);
+          currentDepth.value = '--';
+        }
+      };
+
+      const toggleSprinkler = async (id, state) => {
+        const formData = new URLSearchParams();
+        formData.append('state', state);
+
+        await fetch(`/api/sprinklers/${id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData
+        });
+
+        await loadSprinklers();
+        fetchStats();
+      };
+
+      const enableScheduler = async () => {
+        await fetch('/api/scheduler/enable', { method: 'POST' });
+        fetchSchedulerStatus();
+        loadSprinklers();
+      };
+
+      const disableScheduler = async () => {
+        await fetch('/api/scheduler/disable', { method: 'POST' });
+        fetchSchedulerStatus();
+        loadSprinklers();
+      };
+
+      onMounted(() => {
+        loadSprinklers();
+        fetchStats();
+        fetchSchedulerStatus();
+        fetchDepth();
+
+        // Update depth every 5 seconds
+        setInterval(fetchDepth, 5000);
+
+        // Update other stats every minute
+        setInterval(() => {
+          loadSprinklers();
+          fetchStats();
+          fetchSchedulerStatus();
+        }, 60000);
+      });
+
+      return {
+        sprinklers,
+        totalMinutes,
+        schedulerEnabled,
+        currentDepth,
+        toggleSprinkler,
+        enableScheduler,
+        disableScheduler
+      };
+    }
+  }).mount('#app');
+</script>
+
+</body>
+</html>
