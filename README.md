@@ -11,13 +11,13 @@
 - Uses one Pi to connect the water level sensor because the Widgetlords Pi-SPi-8AI+ takes up the whole GPIO header.
 - Uses another Pi to control 4 Aqualin Solenoid Valves with relays.
 
-## Deploy
-
 ### Water level PI
 
 Reads the level from the Widgetlords Pi-SPi-8AI+ board and emits it over socket.io
 
 It also sends it to a local InfluxDB so it can be visualized with Grafana.
+
+#### Deploy
 
 ```
 rsync -avhS --progress --exclude 'node_modules' ./ 192.168.204.19:/apps/waterlevel
@@ -32,6 +32,8 @@ Conrols 4 sprinklers using the solenoid valves.
 Has some logic to start the sprinklers when the water level is stable and stop when the water level is low.
 
 Also includes a scheduler to only sprinkle between 3 AM in the morning and 12 PM in the afternoon.
+
+#### Deploy
 
 ```
 rsync -avhS --progress --exclude 'node_modules' ./ 192.168.204.18:/apps/sprinklers/new
