@@ -20,7 +20,7 @@ It also sends it to a local InfluxDB so it can be visualized with Grafana.
 #### Deploy
 
 ```
-rsync -avhS --progress --exclude 'node_modules' ./ 192.168.204.19:/apps/waterlevel
+rsync -avhS --progress --exclude 'node_modules' ./waterlevel/ 192.168.204.19:/apps/waterlevel
 ```
 
 ### Sprinkler PI
@@ -36,5 +36,5 @@ Also includes a scheduler to only sprinkle between 3 AM in the morning and 12 PM
 #### Deploy
 
 ```
-rsync -avhS --progress --exclude 'node_modules' ./ 192.168.204.18:/apps/sprinklers/new
+rsync -avhS --progress --exclude 'node_modules' ./sprinklers/ 192.168.204.18:/apps/sprinklers/new
 ```
