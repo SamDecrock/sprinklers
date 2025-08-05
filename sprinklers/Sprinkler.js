@@ -2,17 +2,11 @@ const fs = require('fs')
 
 const PULSE_TIME = 0.150;
 const COOLDOWN_TIME = 0.200;  // after pulse has been sent, wait a bit so that a new instruction never overlaps.
-// Else 2 pulses could be seen as one.
-// In reality this is never a problem as sending 2 pulses to the same sprinkler without changing the polarity.
-// has the same effect anyway.
-// (Changing the polarity introduces a sleep time)
-const POLARITY_PULSE_DELAY = 0.100 // time between setting polarity and giving pulse
 const MINIMUM_DEPTH = 38; // minimum depth in cm before sprinkler can operate
 
 class Sprinkler {
 
-  constructor(polaritySwither, gpioPin, name, depthSensor, desiredRunTime) {
-    this.polaritySwither = polaritySwither;
+  constructor(gpioPin, name, depthSensor, desiredRunTime) {
     this.gpioPin = gpioPin;
     this.name = name;
     this.depthSensor = depthSensor;
@@ -65,10 +59,9 @@ class Sprinkler {
     this.runTime = 0;
 
     if (this.simulate) return;
-    await this.polaritySwither.forward();
-    await sleep(POLARITY_PULSE_DELAY); // make sure sure polarity is set well before giving pulse
-    await this.pulse();
-    await this.polaritySwither.off();
+
+    this.pin.writeSync(1);
+    await sleep(COOLDOWN_TIME);
   }
 
   resetTotalRunTime() {
@@ -86,23 +79,11 @@ class Sprinkler {
     }
 
     if (this.simulate) return;
-    await this.polaritySwither.reverse();
-    await sleep(POLARITY_PULSE_DELAY); // make sure sure polarity is set well before giving pulse
-    await this.pulse();
-    if (this.gpioPin == 13) {
-      // newer valves need more pulses to turn off
-      await this.pulse();
-      await this.pulse();
-    }
-    await this.polaritySwither.off();
-  }
 
-  async pulse() {
-    this.pin.writeSync(1);
-    await sleep(PULSE_TIME);
     this.pin.writeSync(0);
     await sleep(COOLDOWN_TIME);
   }
+
 
   toObject() {
     return {

@@ -1,6 +1,5 @@
 require('./helpers');
 const Sprinkler = require('./Sprinkler');
-const PolaritySwitcher = require('./PolaritySwitcher');
 const DepthSensor = require('./DepthSensor');
 const fs = require('fs');
 
@@ -142,8 +141,7 @@ class WaitTimeOptimizer {
 }
 
 // Setup hardware
-const polaritySwither = new PolaritySwitcher(16, 20, 21);
-const sprinkler = new Sprinkler(polaritySwither, 6, 'Wit');
+const sprinkler = new Sprinkler(6, 'Wit');
 
 // Create depth sensor instance
 const depthSensor = new DepthSensor({
@@ -159,9 +157,6 @@ const optimizer = new WaitTimeOptimizer(sprinkler, depthSensor, {
 process.on('SIGINT', async () => {
   console.log('\nGracefully shutting down...');
   optimizer.stop();
-
-  // Turn off polarity switcher
-  await polaritySwither.off();
 
   console.log('All sprinklers stopped. Exiting...');
   process.exit(0);

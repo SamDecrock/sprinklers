@@ -1,6 +1,5 @@
 class Sprinklers {
-  constructor(sprinklerSequence, polaritySwither) {
-    this.polaritySwither = polaritySwither;
+  constructor(sprinklerSequence) {
     this.sprinklerSequence = sprinklerSequence;
 
     this.isSprinkling = false;
@@ -44,7 +43,6 @@ class Sprinklers {
     await sprinkler.off();
     this.logRunTime(sprinkler.runTime);
     sprinkler.resetTotalRunTime();
-    await this.polaritySwither.off();
 
     // Wait 5 seconds before starting the next sprinkler
     this.waitForStartTimer = setTimeout(() => this.continueWithNextSprinkler(), 5000);
@@ -71,7 +69,6 @@ class Sprinklers {
 
     const sprinkler = this.getCurrentSprinkler();
     await sprinkler.off();
-    await this.polaritySwither.off();
 
     this.logRunTime(sprinkler.runTime);
   }

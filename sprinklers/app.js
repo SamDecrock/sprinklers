@@ -1,14 +1,11 @@
 require('./helpers');
 const Sprinkler = require('./Sprinkler');
-const PolaritySwitcher = require('./PolaritySwitcher');
 const Sprinklers = require('./Sprinklers');
 const Scheduler = require('./Scheduler');
 const DepthSensor = require('./DepthSensor');
 const api = require('./api');
 const TimeBasedScheduler = require('./TimeBasedScheduler');
 const DepthMonitor = require('./DepthMonitor');
-
-const polaritySwither = new PolaritySwitcher(16, 20, 21);
 
 // Create depth sensor instance
 const depthSensor = new DepthSensor({
@@ -19,17 +16,21 @@ const depthSensor = new DepthSensor({
 depthSensor.connect();
 
 const sprinklerSequence = [
-  new Sprinkler(polaritySwither, 6 , 'Wit'  , depthSensor, 4 * 60 * 1000),
-  new Sprinkler(polaritySwither, 13, 'Bruin', depthSensor, 5 * 60 * 1000),
-  new Sprinkler(polaritySwither, 19, 'Blauw', depthSensor, 5 * 60 * 1000),
-  new Sprinkler(polaritySwither, 26, 'Groen', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(5 , '5' , depthSensor, 5 * 60 * 1000),
+  new Sprinkler(6 , '6' , depthSensor, 5 * 60 * 1000),
+  new Sprinkler(13, '13', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(16, '16', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(19, '19', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(20, '20', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(21, '21', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(26, '26', depthSensor, 5 * 60 * 1000)
 ];
+
+// Sprinklers control all sprinklers (running them in sequence for x amount of time)
+const sprinklers = new Sprinklers(sprinklerSequence);
 
 // Start the depth monitor
 const depthMonitor = new DepthMonitor([sprinklerSequence[0], sprinklerSequence[2], sprinklerSequence[3]], [sprinklerSequence[1]], depthSensor);
-
-
-const sprinklers = new Sprinklers(sprinklerSequence, polaritySwither);
 
 // Print initial depth
 depthSensor.on('depth', (data) => {
@@ -69,9 +70,6 @@ const cleanup = async () => {
       await sprinkler.off();
     }
   }
-
-  // Turn off polarity switcher
-  await polaritySwither.off();
 
   console.log('[app.js] All sprinklers stopped. Exiting...');
   process.exit(0);
