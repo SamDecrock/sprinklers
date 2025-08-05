@@ -5,7 +5,6 @@ const Scheduler = require('./Scheduler');
 const DepthSensor = require('./DepthSensor');
 const api = require('./api');
 const TimeBasedScheduler = require('./TimeBasedScheduler');
-const DepthMonitor = require('./DepthMonitor');
 
 // Create depth sensor instance
 const depthSensor = new DepthSensor({
@@ -28,9 +27,6 @@ const sprinklerSequence = [
 
 // Sprinklers control all sprinklers (running them in sequence for x amount of time)
 const sprinklers = new Sprinklers(sprinklerSequence);
-
-// Start the depth monitor
-const depthMonitor = new DepthMonitor([sprinklerSequence[0], sprinklerSequence[2], sprinklerSequence[3]], [sprinklerSequence[1]], depthSensor);
 
 // Print initial depth
 depthSensor.on('depth', (data) => {
