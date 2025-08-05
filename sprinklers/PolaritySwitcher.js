@@ -7,7 +7,7 @@ class PolaritySwitcher {
   constructor(gpioBreakerPin, gpioPin1, gpioPin2) {
     this.simulate = false;
     if (!fs.existsSync('/sys/class/gpio/export')) {
-      console.log('> Not on a Pi, simulating things ...');
+      console.log('[PolaritySwitcher] Not on a Pi, simulating things ...');
       this.simulate = true;
       return;
     }

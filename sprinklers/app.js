@@ -1,7 +1,7 @@
 require('./helpers');
 const Sprinkler = require('./Sprinkler');
 const PolaritySwitcher = require('./PolaritySwitcher');
-const SprinklerController = require('./controller/SprinklerController');
+const Sprinklers = require('./Sprinklers');
 const Scheduler = require('./Scheduler');
 const DepthSensor = require('./DepthSensor');
 const api = require('./api');
@@ -18,24 +18,18 @@ const depthSensor = new DepthSensor({
 // Connect to depth sensor
 depthSensor.connect();
 
-const sprinklers = [
-  new Sprinkler(polaritySwither, 6 , 'Wit', depthSensor),
-  new Sprinkler(polaritySwither, 13, 'Bruin', depthSensor),
-  new Sprinkler(polaritySwither, 19, 'Blauw', depthSensor),
-  new Sprinkler(polaritySwither, 26, 'Groen', depthSensor),
+const sprinklerSequence = [
+  new Sprinkler(polaritySwither, 6 , 'Wit'  , depthSensor, 4 * 60 * 1000),
+  new Sprinkler(polaritySwither, 13, 'Bruin', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(polaritySwither, 19, 'Blauw', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(polaritySwither, 26, 'Groen', depthSensor, 5 * 60 * 1000),
 ];
 
 // Start the depth monitor
-const depthMonitor = new DepthMonitor([sprinklers[0], sprinklers[2], sprinklers[3]], [sprinklers[1]], depthSensor);
+const depthMonitor = new DepthMonitor([sprinklerSequence[0], sprinklerSequence[2], sprinklerSequence[3]], [sprinklerSequence[1]], depthSensor);
 
-const sequence = [
-  { index: 0, sprinklerTime: 3 },
-  { index: 1, sprinklerTime: 3 },
-  { index: 3, sprinklerTime: 3 },
-  { index: 2, sprinklerTime: 3 },
-];
 
-const controller = new SprinklerController(sprinklers, polaritySwither, sequence);
+const sprinklers = new Sprinklers(sprinklerSequence, polaritySwither);
 
 // Print initial depth
 depthSensor.on('depth', (data) => {
@@ -43,10 +37,10 @@ depthSensor.on('depth', (data) => {
 });
 
 // Create scheduler instance with required configuration
-const scheduler = new Scheduler(controller, depthSensor, {
+const scheduler = new Scheduler(sprinklers, depthSensor, {
   depthThreshold: 42, // Depth threshold in cm
 
-  useStabilityLogic: true, // When true, the depth should be stable for a certain amount of time. Stable means that the depth is not changing by more than a few cm.
+  useStabilityLogic: false, // When true, the depth should be stable for a certain amount of time. Stable means that the depth is not changing by more than a few cm.
   stabilityThreshold: 2, // 2 cm difference threshold
   stabilityTime: 60*1000, // 60 seconds
   // another way is to simply wait for a certain time before resuming sprinklers
@@ -69,9 +63,9 @@ const cleanup = async () => {
   scheduler.cleanup();
 
   // Stop all sprinklers
-  for (const sprinkler of sprinklers) {
+  for (const sprinkler of sprinklerSequence) {
     if (sprinkler.state === 'on') {
-      console.log(`Turning off sprinkler ${sprinkler.name}`);
+      console.log(`[app.js] Turning off sprinkler ${sprinkler.name}`);
       await sprinkler.off();
     }
   }
@@ -79,7 +73,7 @@ const cleanup = async () => {
   // Turn off polarity switcher
   await polaritySwither.off();
 
-  console.log('All sprinklers stopped. Exiting...');
+  console.log('[app.js] All sprinklers stopped. Exiting...');
   process.exit(0);
 };
 
@@ -87,5 +81,5 @@ process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
 
 // Expose API with scheduler
-api.exposeApi(sprinklers, controller, scheduler, depthSensor);
+api.exposeApi(sprinklerSequence, sprinklers, scheduler, depthSensor);
 

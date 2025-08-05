@@ -1,15 +1,19 @@
 class Scheduler {
-  constructor(controller, depthSensor, config) {
+  constructor(sprinklers, depthSensor, config) {
     if (!config || !config.depthThreshold || !config.stabilityThreshold || !config.stabilityTime || config.useStabilityLogic === undefined || !config.waitTimeBeforeResuming) {
       throw new Error('Scheduler requires all configuration parameters: depthThreshold, stabilityThreshold, stabilityTime, useStabilityLogic, waitTimeBeforeResuming');
     }
 
-    this.sprinklerController = controller;
+    this.sprinklers = sprinklers;
     this.depthSensor = depthSensor;
     this.isEnabled = false;
     this.hasGoneBelowThreshold = false;
+    this.isWaiting = false;
+    this.waitTimeoutId = null;
     this.depthReadings = [];
     this.config = config;
+
+    this.setupDepthSensorListeners();  // only do this once
   }
 
   enable() {
@@ -17,15 +21,14 @@ class Scheduler {
 
     this.isEnabled = true;
     this.hasGoneBelowThreshold = false;
+    this.isWaiting = false;
     this.depthReadings = [];
-
-    this.setupDepthSensorListeners();
 
     // Get initial depth reading and start sprinklers if above threshold
     this.depthSensor.once('depth', (data) => {
       if (data.depth >= this.config.depthThreshold) {
-        console.log(`Initial depth (${data.depth.toFixed(2)}cm) above threshold, starting sprinklers`);
-        this.sprinklerController.resume();
+        console.log(`[Scheduler] Initial depth (${data.depth.toFixed(2)}cm) above threshold, starting sprinklers`);
+        this.sprinklers.resume();
       }
     });
   }
@@ -35,32 +38,38 @@ class Scheduler {
 
     this.isEnabled = false;
     this.hasGoneBelowThreshold = false;
+    this.isWaiting = false;
+
+    // Clear any pending wait timeout
+    if (this.waitTimeoutId) {
+      clearTimeout(this.waitTimeoutId);
+      this.waitTimeoutId = null;
+    }
+
     this.depthReadings = [];
 
     // Stop sprinklers when disabling
-    if (this.sprinklerController.isSprinkling) {
-      console.log('Scheduler disabled - Stopping sprinklers');
-      this.sprinklerController.pause();
-    }
+    this.sprinklers.pause();
   }
 
   setupDepthSensorListeners() {
     this.depthSensor.on('depth', (data) => {
       if (!this.isEnabled) return;
 
-      // console.log('New depth reading:', data.depth.toFixed(2), 'cm');
+      // console.log('[Scheduler] New depth reading:', data.depth.toFixed(2), 'cm');
 
       // If depth is below threshold, stop sprinklers
-      if (data.depth < this.config.depthThreshold && this.sprinklerController.isSprinkling) {
-        console.log(`Depth (${data.depth.toFixed(2)}) below threshold (${this.config.depthThreshold}), pausing sprinklers`);
-        this.sprinklerController.pause();
+      if (data.depth < this.config.depthThreshold) {
+        console.log(`[Scheduler] Depth (${data.depth.toFixed(2)}) below threshold (${this.config.depthThreshold}), pausing sprinklers`);
+        this.sprinklers.pause();
         this.hasGoneBelowThreshold = true;
+        this.isWaiting = false;
         this.depthReadings = [];
         return;
       }
 
       // If we're above threshold and have gone below before
-      if (data.depth >= this.config.depthThreshold && this.hasGoneBelowThreshold && !this.sprinklerController.isSprinkling) {
+      if (data.depth >= this.config.depthThreshold && this.hasGoneBelowThreshold) {
         if (this.config.useStabilityLogic) {
           this.handleStabilityLogic(data);
         } else {
@@ -96,9 +105,9 @@ class Scheduler {
         const depthDifference = maxDepth - minDepth;
 
         if (depthDifference <= this.config.stabilityThreshold) {
-          console.log(`Depth has been stable within ${this.config.stabilityThreshold}cm for ${this.config.stabilityTime/1000} seconds, resuming sprinklers`);
+          console.log(`[Scheduler] [depth:${this.depthSensor.depth.toFixed(2) }] Depth has been stable within ${this.config.stabilityThreshold}cm for ${this.config.stabilityTime/1000} seconds, resuming sprinklers`);
           if (this.isEnabled) {
-            this.sprinklerController.resume();
+            this.sprinklers.resume();
             this.hasGoneBelowThreshold = false;
             this.depthReadings = [];
           }
@@ -108,18 +117,27 @@ class Scheduler {
   }
 
   handleWaitTimeLogic() {
-    if (!this.isEnabled) return;
-    console.log(`Waiting for ${this.config.waitTimeBeforeResuming / 1000} seconds before resuming sprinklers`);
-    setTimeout(() => {
+    if (!this.isEnabled || this.isWaiting) return;
+
+    this.isWaiting = true;
+    console.log(`[Scheduler] [depth:${this.depthSensor.currentDepth.toFixed(2)}] Waiting for ${this.config.waitTimeBeforeResuming / 1000 / 60} minutes before resuming sprinklers`);
+    this.waitTimeoutId = setTimeout(() => {
       if (this.isEnabled) {
-        console.log('Wait time elapsed, resuming sprinklers');
-        this.sprinklerController.resume();
+        console.log(`[Scheduler] [depth:${this.depthSensor.currentDepth.toFixed(2)}] Wait time elapsed, resuming sprinklers`);
+        this.sprinklers.resume();
         this.hasGoneBelowThreshold = false;
+        this.isWaiting = false;
+        this.waitTimeoutId = null;
       }
     }, this.config.waitTimeBeforeResuming);
   }
 
   cleanup() {
+    // Clear any pending wait timeout
+    if (this.waitTimeoutId) {
+      clearTimeout(this.waitTimeoutId);
+      this.waitTimeoutId = null;
+    }
     this.depthSensor.disconnect();
   }
 }

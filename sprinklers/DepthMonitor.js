@@ -1,4 +1,4 @@
-const MINIMUM_DEPTH = 35;
+const MINIMUM_DEPTH = 38;
 
 class DepthMonitor {
   constructor(normalSprinklers, malfunctioningSprinklers, depthSensor) {
@@ -8,7 +8,7 @@ class DepthMonitor {
     this._onDepth = async (data) => {
       const depth = data.depth;
       // console.log(`DepthMonitor: Depth: ${depth}`);
-      if (depth < MINIMUM_DEPTH) {
+      if (depth <= MINIMUM_DEPTH) {
         // Check if any sprinkler (normal or malfunctioning) is on
         const allSprinklers = [...this.normalSprinklers, ...this.malfunctioningSprinklers];
         const anyOn = allSprinklers.some(s => s.state === 'on');

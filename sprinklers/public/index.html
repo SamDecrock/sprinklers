@@ -121,8 +121,8 @@
     <header>Sprinkler Control Panel</header>
 
     <div class="actions">
-      <button v-if="schedulerEnabled" class="toggle-btn off" @click="disableScheduler">Disable Depth Schedule</button>
-      <button v-else class="toggle-btn on" @click="enableScheduler">Enable Depth Schedule</button>
+      <button v-if="schedulerEnabled" class="toggle-btn off" @click="disableScheduler">Pause Schedule</button>
+      <button v-else class="toggle-btn on" @click="enableScheduler">Resume Schedule</button>
     </div>
 
     <div class="info">

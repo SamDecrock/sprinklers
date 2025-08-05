@@ -4,17 +4,17 @@ const cors = require("cors");
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-function exposeApi(sprinklers, controller, scheduler, depthSensor) {
+function exposeApi(sprinklerSequence, sprinklers, scheduler, depthSensor) {
   app.use(cors({ origin: "*" }));
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static("public"));
 
   app.get("/api/sprinklers", (req, res) => {
-    res.json({ sprinklers: sprinklers.map(s => s.toObject()) });
+    res.json({ sprinklers: sprinklerSequence.map(s => s.toObject()) });
   });
 
   app.get("/api/sprinklers/:id", (req, res) => {
-    const sprinkler = sprinklers.find(s => s.gpioPin == req.params.id);
+    const sprinkler = sprinklerSequence.find(s => s.gpioPin == parseInt(req.params.id));
     if (!sprinkler) return res.status(404).json({ error: 'Sprinkler not found' });
     res.json(sprinkler.toObject());
   });
@@ -24,15 +24,19 @@ function exposeApi(sprinklers, controller, scheduler, depthSensor) {
       const state = req.body.state;
       if (!['on', 'off'].includes(state)) return res.status(400).json({ error: 'Invalid state' });
 
-      const updated = await controller.setSprinklerState(parseInt(req.params.id), state);
-      res.json(updated);
+      const sprinkler = sprinklerSequence.find(s => s.gpioPin == parseInt(req.params.id));
+      if (!sprinkler) return res.status(404).json({ error: 'Sprinkler not found' });
+      if(state == 'on') sprinkler.on();
+      else sprinkler.off();
+
+      res.json({});
     } catch (err) {
       res.status(404).json({ error: err.message });
     }
   });
 
   app.get("/api/stats", (req, res) => {
-    const totalMinutes = controller.getTotalMinutesLast24h();
+    const totalMinutes = sprinklers.getTotalMinutesLast24h();
     res.json({ totalMinutes });
   });
 
@@ -57,7 +61,7 @@ function exposeApi(sprinklers, controller, scheduler, depthSensor) {
   });
 
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`[API] Server running on port ${PORT}`);
   });
 }
 
