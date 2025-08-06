@@ -2,7 +2,7 @@
 
 - Uses the TL‑136 Liquid Level Level Sensor Detector 24VDC 4‑20mA to check the water level https://www.aliexpress.com/item/1005004309828489.html
 - Uses the Widgetlords Pi-SPi-8AI+ to read the signal: https://widgetlords.com/collections/pi-spi-series-1/products/pi-spi-8aiplus-raspberry-pi-analog-input-4-20-ma-interface
-- Uses the Aqualin Solenoid Valve to control the sprinklers: https://www.aliexpress.com/item/32697751769.html (not so happy about them since they require a polarity switch to be turned off)
+- Uses the normally closed 12V solenoid valves: https://nl.aliexpress.com/item/1005005253916656.html
 - Uses an 8 channel relay board to control the valves: https://www.aliexpress.com/item/1005008071902438.html
 
 ## Set up
@@ -35,5 +35,5 @@ Also includes a scheduler to only sprinkle between 3 AM in the morning and 12 PM
 #### Deploy
 
 ```
-rsync -avhS --progress --exclude 'node_modules' ./sprinklers/ 192.168.204.18:/apps/sprinklers/new
+rsync -avhS --progress --exclude 'node_modules' ./sprinklers/ 192.168.204.20:/apps/sprinklers
 ```
