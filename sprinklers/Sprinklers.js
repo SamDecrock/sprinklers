@@ -75,6 +75,10 @@ class Sprinklers {
     this.logRunTime(sprinkler.runTime);
   }
 
+  areRunning() {
+    return this.isSprinkling;
+  }
+
   clearTimers() {
     if (this.runTimer) {
       clearTimeout(this.runTimer);
