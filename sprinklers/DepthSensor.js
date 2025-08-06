@@ -10,6 +10,7 @@ class DepthSensor extends EventEmitter {
     this.config = config;
     this.socket = null;
     this.currentDepth = null;
+    this.previousDepth = null;
   }
 
 
@@ -29,7 +30,10 @@ class DepthSensor extends EventEmitter {
 
   setupSocketListeners() {
     this.socket.on('depth', (data) => {
+      this.previousDepth = this.currentDepth;
       this.currentDepth = data.depth;
+
+      data.previousDepth = this.previousDepth;
       this.emit('depth', data);
     });
   }
