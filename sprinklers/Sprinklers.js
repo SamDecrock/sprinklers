@@ -23,9 +23,11 @@ class Sprinklers {
     const sprinkler = this.getCurrentSprinkler();
     const runTimeRemaining = sprinkler.desiredRunTime - sprinkler.totalRunTime;
     // in the very unlikely case that this is 0 or even lower than 0, continue with the next sprinkler:
+    // this can happen more often if desiredRunTime is set 0
     if(runTimeRemaining <= 0) {
       sprinkler.resetTotalRunTime();
-      this.continueWithNextSprinkler();
+      this.isSprinkling = false;
+      await this.continueWithNextSprinkler();
       return;
     }
     this.runTimer = setTimeout(() => this.desiredRunTimeEnded(), runTimeRemaining);

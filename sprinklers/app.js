@@ -19,7 +19,7 @@ const depthSensor = new DepthSensor({
 depthSensor.connect();
 
 const sprinklerSequence = [
-  new Sprinkler(polaritySwither, 6 , 'Wit'  , depthSensor, 4 * 60 * 1000),
+  new Sprinkler(polaritySwither, 6 , 'New Sprinklers'  , depthSensor, 0), // connected to other sprinkler system
   new Sprinkler(polaritySwither, 13, 'Bruin', depthSensor, 5 * 60 * 1000),
   new Sprinkler(polaritySwither, 19, 'Blauw', depthSensor, 5 * 60 * 1000),
   new Sprinkler(polaritySwither, 26, 'Groen', depthSensor, 5 * 60 * 1000),
