@@ -59,7 +59,8 @@ class Scheduler {
       // console.log('[Scheduler] New depth reading:', data.depth.toFixed(2), 'cm');
 
       // If depth is below threshold, stop sprinklers
-      if (data.depth < this.config.depthThreshold) {
+      // we also check if the sprinklers are running so we don't log and send pause multiple times which messes up the logs
+      if (data.depth < this.config.depthThreshold && this.sprinklers.areRunning()) {
         console.log(`[Scheduler] Depth (${data.depth.toFixed(2)}) below threshold (${this.config.depthThreshold}), pausing sprinklers`);
         this.sprinklers.pause();
         this.hasGoneBelowThreshold = true;
