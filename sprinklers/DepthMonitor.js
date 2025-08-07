@@ -18,7 +18,7 @@ class DepthMonitor {
         if (!anyOn) {
           // Send off command to all malfunctioning sprinklers
           for (const sprinkler of this.malfunctioningSprinklers) {
-            console.log(`DepthMonitor: Emergency off for malfunctioning sprinkler '${sprinkler.name}' (depth=${data.depth.toFixed(2)})`);
+            console.log(`[DepthMonitor] Emergency off for malfunctioning sprinkler '${sprinkler.name}' (depth=${data.depth.toFixed(2)})`);
             sprinkler.off();
           }
         }
