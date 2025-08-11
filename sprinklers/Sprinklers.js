@@ -11,7 +11,6 @@ class Sprinklers {
 
 
     this.runTimer = null;
-    this.waitForStartTimer = null;
   }
 
   async resume() {
@@ -46,8 +45,7 @@ class Sprinklers {
     this.logRunTime(sprinkler.runTime);
     sprinkler.resetTotalRunTime();
 
-    // Wait 5 seconds before starting the next sprinkler
-    this.waitForStartTimer = setTimeout(() => this.continueWithNextSprinkler(), 5000);
+    this.continueWithNextSprinkler()
   }
 
   async continueWithNextSprinkler() {
@@ -83,11 +81,6 @@ class Sprinklers {
     if (this.runTimer) {
       clearTimeout(this.runTimer);
       this.runTimer = null;
-    }
-
-    if(this.waitForStartTimer) {
-      clearTimeout(this.waitForStartTimer);
-      this.waitForStartTimer = null;
     }
   }
 
