@@ -14,15 +14,21 @@ const depthSensor = new DepthSensor({
 // Connect to depth sensor
 depthSensor.connect();
 
+// https://github.com/fivdi/onoff/issues/199
+// To find the right value, see cat /sys/kernel/debug/gpio
+// With Bookworm on RPI5B, offset is 571.
+// With Bookworm on RPi4B, offset is 522.
+const gpioOffset = 571;
+
 const sprinklerSequence = [
-  new Sprinkler(5 , '5' , depthSensor, 5 * 60 * 1000),
-  new Sprinkler(6 , '6' , depthSensor, 5 * 60 * 1000),
-  new Sprinkler(13, '13', depthSensor, 5 * 60 * 1000),
-  new Sprinkler(16, '16', depthSensor, 5 * 60 * 1000),
-  new Sprinkler(19, '19', depthSensor, 5 * 60 * 1000),
-  new Sprinkler(20, '20', depthSensor, 5 * 60 * 1000),
-  new Sprinkler(21, '21', depthSensor, 5 * 60 * 1000),
-  new Sprinkler(26, '26', depthSensor, 5 * 60 * 1000)
+  new Sprinkler(gpioOffset + 26, '1', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(gpioOffset + 19, '2', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(gpioOffset + 13, '3', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(gpioOffset + 6 , '4', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(gpioOffset + 5 , '5', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(gpioOffset + 21, '6', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(gpioOffset + 20, '7', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(gpioOffset + 16, '8', depthSensor, 5 * 60 * 1000)
 ];
 
 // Sprinklers control all sprinklers (running them in sequence for x amount of time)
