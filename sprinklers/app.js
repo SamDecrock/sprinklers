@@ -19,14 +19,14 @@ const depthSensor = new DepthSensor({
 depthSensor.connect();
 
 const sprinklerSequence = [
-  new Sprinkler(polaritySwither, 6 , 'New Sprinklers'  , depthSensor, 5 * 60 * 1000), // connected to other sprinkler system
-  new Sprinkler(polaritySwither, 13, 'Bruin', depthSensor, 5 * 60 * 1000),
+  new Sprinkler(polaritySwither, 6 , 'Wit'  , depthSensor, 5 * 60 * 1000),
+  // new Sprinkler(polaritySwither, 13, 'Bruin', depthSensor, 5 * 60 * 1000),
   new Sprinkler(polaritySwither, 19, 'Blauw', depthSensor, 5 * 60 * 1000),
   new Sprinkler(polaritySwither, 26, 'Groen', depthSensor, 5 * 60 * 1000),
 ];
 
 // Start the depth monitor
-const depthMonitor = new DepthMonitor([sprinklerSequence[0], sprinklerSequence[2], sprinklerSequence[3]], [sprinklerSequence[1]], depthSensor);
+// const depthMonitor = new DepthMonitor([sprinklerSequence[0], sprinklerSequence[2], sprinklerSequence[3]], [sprinklerSequence[1]], depthSensor);
 
 
 const sprinklers = new Sprinklers(sprinklerSequence, polaritySwither);
